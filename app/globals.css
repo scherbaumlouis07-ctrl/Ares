@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #080808;
+  --color-surface: #0d0d0d;
+  --color-surface-2: #111111;
+  --color-elevated: #151515;
+  --color-elevated-2: #181818;
+  --color-border: #242424;
+  --color-border-strong: #2c2c2c;
+  --color-text: #f2f2f2;
+  --color-text-secondary: #a1a1a1;
+  --color-text-muted: #666666;
+  --color-accent: #ffffff;
+  --color-critical: #e5484d;
+  --color-critical-dim: #7a2427;
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-elevated: var(--color-elevated);
+  --color-elevated-2: var(--color-elevated-2);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-text: var(--color-text);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-critical: var(--color-critical);
+  --color-critical-dim: var(--color-critical-dim);
+  --font-sans: var(--font-inter);
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+::selection {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 4px;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes ares-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ares-spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes ares-flicker {
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  15% {
+    opacity: 0.55;
+    filter: brightness(1.8);
+  }
+  35% {
+    opacity: 1;
+    filter: brightness(0.85);
+  }
+  55% {
+    opacity: 0.7;
+    filter: brightness(1.6);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+@keyframes ares-head-idle {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(2px, -3px) rotate(0.3deg);
+  }
+  50% {
+    transform: translate(-2px, -1px) rotate(-0.2deg);
+  }
+  75% {
+    transform: translate(1px, -4px) rotate(0.15deg);
+  }
+}
