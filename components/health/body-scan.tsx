@@ -1,33 +1,43 @@
 "use client";
 
+import Script from "next/script";
 import { MUSCLE_GROUPS_BY_KIND, type TrainingKind } from "@/lib/constants";
-import { normalizeRegions, type MuscleRegion } from "./muscle-highlight";
+import { cn } from "@/lib/utils";
 
-const REGION_FILL_IDLE = "#1c1c1c";
-const REGION_STROKE_IDLE = "#2c2c2c";
-const REGION_ACTIVE = "#e5484d";
+const MUSCLE_LABELS_DE: Record<string, string> = {
+  shoulders: "Schultern",
+  chest: "Brust",
+  back: "Rücken",
+  lats: "Rücken",
+  biceps: "Bizeps",
+  triceps: "Trizeps",
+  forearms: "Unterarme",
+  quads: "Beine",
+  hamstrings: "Beine",
+  glutes: "Beine",
+  calves: "Beine",
+};
 
-function Region({
-  id,
-  active,
-  d,
-}: {
-  id: MuscleRegion;
-  active: Set<MuscleRegion>;
-  d: string;
-}) {
-  const isActive = active.has(id);
-  return (
-    <path
-      d={d}
-      fill={isActive ? REGION_ACTIVE : REGION_FILL_IDLE}
-      fillOpacity={isActive ? 0.55 : 1}
-      stroke={isActive ? REGION_ACTIVE : REGION_STROKE_IDLE}
-      strokeWidth={1}
-      className="transition-all duration-500 ease-out"
-    />
-  );
+function activeMuscleLabels(kind: TrainingKind): string[] {
+  const labels = MUSCLE_GROUPS_BY_KIND[kind].map((g) => MUSCLE_LABELS_DE[g] ?? g);
+  return Array.from(new Set(labels));
 }
+
+// Fixed (not random) so server/client render identically — a handful of
+// scan particles rising off the disc and fading out, staggered so they
+// never all fire at once.
+const SCAN_PARTICLES = [
+  { left: "10%", delay: "0s", duration: "3.2s" },
+  { left: "22%", delay: "1.4s", duration: "3.8s" },
+  { left: "34%", delay: "0.6s", duration: "3.4s" },
+  { left: "46%", delay: "2.1s", duration: "3s" },
+  { left: "58%", delay: "0.3s", duration: "3.6s" },
+  { left: "68%", delay: "1.8s", duration: "3.3s" },
+  { left: "78%", delay: "0.9s", duration: "3.9s" },
+  { left: "88%", delay: "2.5s", duration: "3.1s" },
+  { left: "50%", delay: "1.1s", duration: "3.5s" },
+  { left: "40%", delay: "2.8s", duration: "3.7s" },
+];
 
 export function BodyScan({
   kind,
@@ -38,60 +48,76 @@ export function BodyScan({
   bodyFat: number;
   weightKg: number;
 }) {
-  const active = normalizeRegions(MUSCLE_GROUPS_BY_KIND[kind]);
+  const active = kind !== "rest";
+  const labels = activeMuscleLabels(kind);
 
   return (
-    <div className="relative h-full w-full flex items-center justify-center">
-      <svg width="220" height="440" viewBox="0 0 220 440" className="overflow-visible">
-        <defs>
-          <pattern id="scanGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M10 0 L0 0 0 10" fill="none" stroke="#ffffff08" strokeWidth={1} />
-          </pattern>
-        </defs>
+    <div className="relative h-full w-full overflow-hidden">
+      <Script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js" strategy="afterInteractive" />
 
-        {/* outline silhouette */}
-        <path
-          d="M110 20
-             c14 0 24 12 24 26 c0 10 -5 17 -10 21
-             c16 6 26 20 28 38 l6 46
-             c2 10 -2 18 -10 20 l-10 3 4 60 8 90
-             c1 9 -6 15 -14 15 h-8 l-4 -70 -4 70 h-8
-             c-8 0 -15 -6 -14 -15 l8 -90 4 -60 -10 -3
-             c-8 -2 -12 -10 -10 -20 l6 -46
-             c2 -18 12 -32 28 -38
-             c-5 -4 -10 -11 -10 -21 c0 -14 10 -26 24 -26 Z"
-          fill="url(#scanGrid)"
-          stroke="#2c2c2c"
-          strokeWidth={1.25}
+      {active && (
+        <div className="absolute left-1/2 top-3 -translate-x-1/2 flex flex-wrap justify-center gap-1.5 z-10">
+          {labels.map((label) => (
+            <span
+              key={label}
+              className="text-[10px] uppercase tracking-wider text-critical border border-critical-dim px-1.5 py-0.5"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Stationary technical platform — glows/pulses, never rotates. Sits
+          under the model's own vertical center so the feet land mid-disc. */}
+      <div className="absolute left-1/2 top-[80%] -translate-x-1/2 w-[62%] aspect-[5/1] z-0">
+        <div className="absolute inset-0 rounded-[50%] border border-border-strong/70" />
+        <div
+          className={cn(
+            "absolute inset-[10%] rounded-[50%] border-2",
+            active ? "border-critical" : "border-text-secondary/70"
+          )}
+          style={{ animation: "disc-glow-pulse 2.4s ease-in-out infinite" }}
+        />
+        <div
+          className={cn("absolute inset-[24%] rounded-[50%] blur-[3px]", active ? "bg-critical/50" : "bg-text/25")}
+          style={{ animation: "disc-glow-pulse 2.4s ease-in-out infinite reverse" }}
         />
 
-        {/* shoulders */}
-        <Region id="shoulders" active={active} d="M64 78 c-14 2 -24 10 -28 22 l10 6 c4 -10 10 -18 20 -22 Z M156 78 c14 2 24 10 28 22 l-10 6 c-4 -10 -10 -18 -20 -22 Z" />
+        {/* Scan particles — drift up off the disc and fade out, looping. */}
+        {SCAN_PARTICLES.map((p, i) => (
+          <div
+            key={i}
+            className={cn(
+              "absolute bottom-1/2 h-3 w-[2px] rounded-full blur-[0.5px]",
+              active ? "bg-critical" : "bg-text-secondary"
+            )}
+            style={{
+              left: p.left,
+              animation: `particle-rise ${p.duration} ease-out ${p.delay} infinite`,
+            }}
+          />
+        ))}
+      </div>
 
-        {/* chest */}
-        <Region id="chest" active={active} d="M84 92 c8 6 18 9 26 9 c8 0 18 -3 26 -9 l4 22 c-10 8 -20 12 -30 12 c-10 0 -20 -4 -30 -12 Z" />
-
-        {/* back (abstract side strips) */}
-        <Region id="back" active={active} d="M70 96 l-6 34 8 2 6 -34 Z M150 96 l6 34 -8 2 -6 -34 Z" />
-
-        {/* biceps */}
-        <Region id="biceps" active={active} d="M50 108 c-6 4 -10 12 -10 22 l4 22 12 -2 -2 -24 c0 -8 2 -14 6 -18 Z M170 108 c6 4 10 12 10 22 l-4 22 -12 -2 2 -24 c0 -8 -2 -14 -6 -18 Z" />
-
-        {/* forearms */}
-        <Region id="forearms" active={active} d="M44 152 l4 34 12 -1 -3 -33 Z M176 152 l-4 34 -12 -1 3 -33 Z" />
-
-        {/* glutes */}
-        <Region id="glutes" active={active} d="M92 232 l-4 20 h44 l-4 -20 Z" />
-
-        {/* quads */}
-        <Region id="quads" active={active} d="M92 254 l-6 56 18 2 4 -58 Z M128 254 l6 56 -18 2 -4 -58 Z" />
-
-        {/* hamstrings (abstract rear strips) */}
-        <Region id="hamstrings" active={active} d="M86 260 l-3 46 6 1 3 -47 Z M134 260 l3 46 -6 1 -3 -47 Z" />
-
-        {/* calves */}
-        <Region id="calves" active={active} d="M90 322 l-3 42 16 2 1 -44 Z M130 322 l3 42 -16 2 -1 -44 Z" />
-      </svg>
+      <model-viewer
+        src="/health/body.glb"
+        alt="3D-Körpermodell"
+        auto-rotate
+        auto-rotate-delay="0"
+        rotation-per-second="16deg"
+        disable-zoom
+        disable-pan
+        shadow-intensity="0"
+        exposure="1.1"
+        loading="eager"
+        reveal="auto"
+        className={cn(
+          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[88%] z-10",
+          active && "animate-[body-rim-glow_2.2s_ease-in-out_infinite]"
+        )}
+        style={{ mixBlendMode: "screen", background: "transparent" }}
+      />
 
       {/* metric callouts */}
       <div className="absolute right-2 top-[28%] flex items-center gap-2">

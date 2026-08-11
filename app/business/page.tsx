@@ -1,13 +1,24 @@
 import { Section } from "@/components/ui/section";
 import { OutreachTracker } from "@/components/business/outreach-tracker";
-import { CalendarPlaceholder } from "@/components/business/calendar-placeholder";
+import { CalendarGrid } from "@/components/business/calendar-grid";
 import { PercentageLineChart } from "@/components/charts/percentage-line-chart";
 import { outreachKonstanzMock } from "@/lib/mock-data";
-import { isCalendarConnected } from "@/lib/google-calendar";
+import { isCalendarConnected, getCalendarEvents, currentWeekRangeBerlin, type CalendarEvent } from "@/lib/google-calendar";
 
 export default async function BusinessPage() {
   const konstanz = outreachKonstanzMock();
   const connected = await isCalendarConnected();
+
+  let events: CalendarEvent[] = [];
+  if (connected) {
+    const { mondayISO, sundayISO } = currentWeekRangeBerlin();
+    try {
+      events = await getCalendarEvents(mondayISO, sundayISO);
+    } catch {
+      // Connected but the fetch failed (e.g. expired grant) — show an empty
+      // grid rather than crashing the page; the header still says "Verbunden".
+    }
+  }
 
   return (
     <div className="h-full flex flex-col p-4 gap-4">
@@ -38,7 +49,7 @@ export default async function BusinessPage() {
             )
           }
         >
-          <CalendarPlaceholder />
+          <CalendarGrid events={events} />
         </Section>
       </div>
 

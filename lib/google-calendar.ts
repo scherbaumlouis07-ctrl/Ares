@@ -141,6 +141,45 @@ export async function getCalendarEvents(timeMin: string, timeMax: string): Promi
   }));
 }
 
+function berlinOffset(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Berlin",
+    timeZoneName: "shortOffset",
+  }).formatToParts(date);
+  const tzName = parts.find((p) => p.type === "timeZoneName")?.value ?? "GMT+1";
+  const hours = Number(tzName.match(/GMT([+-]\d+)/)?.[1] ?? 1);
+  return `${hours >= 0 ? "+" : "-"}${String(Math.abs(hours)).padStart(2, "0")}:00`;
+}
+
+/** Monday 00:00 to Sunday 23:59:59 of the current week, as offset-correct Berlin ISO timestamps. */
+export function currentWeekRangeBerlin(): { mondayISO: string; sundayISO: string } {
+  const now = new Date();
+  const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Berlin", weekday: "short" }).format(now);
+  const todayIdx = order.indexOf(weekday);
+
+  const dateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Berlin",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const map = Object.fromEntries(dateParts.map((p) => [p.type, p.value]));
+  // Noon anchor avoids the date shifting by a day when subtracting near a DST boundary.
+  const todayNoonUTC = new Date(Date.UTC(Number(map.year), Number(map.month) - 1, Number(map.day), 12));
+
+  const monday = new Date(todayNoonUTC);
+  monday.setUTCDate(monday.getUTCDate() - todayIdx);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(sunday.getUTCDate() + 6);
+
+  const offset = berlinOffset(now);
+  const isoDate = (d: Date, time: string) =>
+    `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}T${time}${offset}`;
+
+  return { mondayISO: isoDate(monday, "00:00:00"), sundayISO: isoDate(sunday, "23:59:59") };
+}
+
 /** Belegte Zeiträume im angegebenen Fenster — daraus lassen sich freie Zeiten ableiten. */
 export async function getBusyTimes(
   timeMin: string,

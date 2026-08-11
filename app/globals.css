@@ -122,3 +122,57 @@ body {
     transform: translate(1px, -4px) rotate(0.15deg);
   }
 }
+
+/* Stationary platform under the 3D body — doesn't rotate, only glows/pulses. */
+@keyframes disc-glow-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(2);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(3.4);
+  }
+}
+
+/* Whole-body reactor-style rim glow on training days — replaces per-region
+   blobs, which can't stay screen-locked to a body that's actually rotating
+   in 3D (they'd drift the moment the model turns). */
+@keyframes body-rim-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(229, 72, 77, 0.35)) drop-shadow(0 0 14px rgba(229, 72, 77, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(229, 72, 77, 0.75)) drop-shadow(0 0 28px rgba(229, 72, 77, 0.45));
+  }
+}
+
+/* Scan particle: drifts up off the disc and fades out, like a scanner
+   sweep in sci-fi UI — subtle, not a fountain. */
+@keyframes particle-rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+    filter: brightness(1.5);
+  }
+  15% {
+    opacity: 1;
+    filter: brightness(3);
+  }
+  50% {
+    filter: brightness(1.5);
+  }
+  65% {
+    filter: brightness(3);
+  }
+  75% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-110px) scale(0.3);
+    opacity: 0;
+    filter: brightness(1.5);
+  }
+}
