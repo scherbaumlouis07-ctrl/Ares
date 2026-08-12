@@ -176,3 +176,37 @@ body {
     filter: brightness(1.5);
   }
 }
+
+/* Gentle levitation for the floating-islands hero. More stops than a plain
+   0/50/100 back-and-forth so the drift eases through the middle instead of
+   visibly changing direction at a single sharp turning point. */
+@keyframes hero-float {
+  0% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-9px);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+  75% {
+    transform: translateY(-9px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Pulses the image's own brightness — since black stays black under a
+   brightness filter, only the already-lit windows/lines actually glow, not
+   the surrounding void. Paired with mix-blend-mode: screen on the image. */
+@keyframes hero-lights-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.6);
+  }
+}

@@ -53,3 +53,8 @@ next-env.d.ts
 # the app at runtime, only public/ares/face.jpg is
 /public/Ares/Face/
 /public/ares/Face/
+
+# original uploaded copy of the business hero — not used at runtime, only
+# public/business/hero.webp is (same Windows-casing pitfall as ares/Face —
+# a broader /public/Business/ rule here previously swallowed hero.webp too)
+/public/business/Inseln/

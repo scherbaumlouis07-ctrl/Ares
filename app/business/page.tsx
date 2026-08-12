@@ -1,59 +1,70 @@
-import { Section } from "@/components/ui/section";
-import { OutreachTracker } from "@/components/business/outreach-tracker";
-import { CalendarGrid } from "@/components/business/calendar-grid";
-import { PercentageLineChart } from "@/components/charts/percentage-line-chart";
-import { outreachKonstanzMock } from "@/lib/mock-data";
-import { isCalendarConnected, getCalendarEvents, currentWeekRangeBerlin, type CalendarEvent } from "@/lib/google-calendar";
+import Link from "next/link";
+import { Starfield } from "@/components/ares/starfield";
 
-export default async function BusinessPage() {
-  const konstanz = outreachKonstanzMock();
-  const connected = await isCalendarConnected();
+// Same timing as the image's own float animation (minus the brightness
+// pulse) — applied separately to the button layer so the hitboxes track the
+// image without a transformed ancestor sitting between the image and the
+// starfield, which would cut off its mix-blend-mode (see the image below).
+const FLOAT_SYNC = "hero-float 8s cubic-bezier(0.45, 0, 0.55, 1) infinite";
 
-  let events: CalendarEvent[] = [];
-  if (connected) {
-    const { mondayISO, sundayISO } = currentWeekRangeBerlin();
-    try {
-      events = await getCalendarEvents(mondayISO, sundayISO);
-    } catch {
-      // Connected but the fetch failed (e.g. expired grant) — show an empty
-      // grid rather than crashing the page; the header still says "Verbunden".
-    }
-  }
+// Percentage bounding boxes over each island, calibrated against
+// public/business/hero.webp — nudge these if a hitbox drifts off its island.
+const ISLAND_LINKS = [
+  { href: "/business/finance", label: "Finance", left: "1%", top: "3%", width: "29%", height: "44%" },
+  { href: "/business/hub", label: "Hub", left: "27%", top: "14%", width: "46%", height: "84%" },
+  { href: "/business/marketing", label: "Marketing", left: "70%", top: "3%", width: "29%", height: "44%" },
+];
 
+export default function BusinessPage() {
   return (
-    <div className="h-full flex flex-col p-4 gap-4">
-      <div className="grid grid-cols-3 gap-4 flex-[2] min-h-0">
-        <div className="col-span-1 flex flex-col gap-4 min-h-0">
-          <Section title="Outreach" className="flex-1">
-            <OutreachTracker />
-          </Section>
-          <Section title="Outreach Konstanz" className="flex-1">
-            <PercentageLineChart data={konstanz} />
-          </Section>
-        </div>
-        <Section
-          title="Google Calendar"
-          className="col-span-2"
-          action={
-            connected ? (
-              <span className="text-[10px] uppercase tracking-wider text-text-muted">
-                Verbunden
-              </span>
-            ) : (
-              <a
-                href="/api/google/auth"
-                className="text-[10px] font-medium uppercase tracking-wider text-text-secondary hover:text-text transition-colors"
-              >
-                Mit Google verbinden
-              </a>
-            )
-          }
-        >
-          <CalendarGrid events={events} />
-        </Section>
-      </div>
+    <div className="relative h-full w-full overflow-hidden bg-black px-44 py-24">
+      <Starfield />
 
-      <Section title="Kunden" className="flex-1 min-h-[120px]" />
+      {/* Soft spotlights in the empty space above the islands. */}
+      <div
+        className="pointer-events-none absolute -top-24 -left-24 h-[420px] w-[420px] rounded-full blur-[90px]"
+        style={{ background: "radial-gradient(circle, rgba(242,242,242,0.16), transparent 70%)" }}
+      />
+      <div
+        className="pointer-events-none absolute -top-24 -right-24 h-[420px] w-[420px] rounded-full blur-[90px]"
+        style={{ background: "radial-gradient(circle, rgba(242,242,242,0.16), transparent 70%)" }}
+      />
+
+      <div className="relative z-10 flex h-full w-full items-center justify-center">
+        {/* Aspect-locked to the image's own 3:2 ratio so the button
+            percentages below line up with the actual islands regardless of
+            container size. */}
+        <div className="relative h-full max-h-full aspect-[3/2]">
+          {/* Float animation lives on the same element as mix-blend-mode —
+              putting it on a wrapper would give that wrapper its own
+              transform-triggered stacking context and cut the blend off
+              from the starfield behind it, which caused a visible black
+              box before. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- static hero, not content that needs Next/Image optimization */}
+          <img
+            src="/business/hero.webp"
+            alt=""
+            className="h-full w-full object-contain"
+            style={{
+              mixBlendMode: "screen",
+              willChange: "transform, filter",
+              animation: `${FLOAT_SYNC}, hero-lights-pulse 3.4s ease-in-out infinite`,
+            }}
+          />
+
+          {ISLAND_LINKS.map((island) => (
+            <Link
+              key={island.href}
+              href={island.href}
+              aria-label={island.label}
+              className="absolute"
+              style={{ left: island.left, top: island.top, width: island.width, height: island.height, animation: FLOAT_SYNC }}
+            >
+              <div className="h-full w-full rounded-[30%] transition-all duration-300 hover:scale-[1.04] hover:bg-white/5 hover:shadow-[0_0_60px_rgba(255,255,255,0.35)]" />
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
